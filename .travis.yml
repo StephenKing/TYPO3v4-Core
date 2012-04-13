@@ -13,6 +13,9 @@ before_script:
   - if [[ "$DB" == "mysql" ]]; then mysql -uroot typo3_test < tests/t3lib/fixtures/cli_users.sql; fi
   - if [[ "$DB" == "pgsql" ]]; then psql -c "DROP DATABASE IF EXISTS typo3_test;" -U postgres; fi
   - if [[ "$DB" == "pgsql" ]]; then psql -c "create database typo3_test;" -U postgres; fi
+  - mkdir -p typo3conf/ext typo3temp uploads
+  - cp tests/t3lib/fixtures/localconf.php typo3conf/localconf.php
+  - cp -r tests/t3lib/fixtures/phpunit typo3conf/ext/
 
 #script: phpunit --configuration phpunit_$DB.xml --coverage-text
 script: php typo3/cli_dispatch.phpsh phpunit--coverage-text tests/
