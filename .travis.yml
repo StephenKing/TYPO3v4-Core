@@ -10,7 +10,7 @@ before_script:
   - if [[ "$DB" == "mysql" ]]; then mysql -e "DROP DATABASE IF EXISTS typo3_test;" -uroot; fi
   - if [[ "$DB" == "mysql" ]]; then mysql -e "create database IF NOT EXISTS typo3_test;" -uroot; fi
   - if [[ "$DB" == "mysql" ]]; then mysql -uroot typo3_test < tests/t3lib/fixtures/introduction.sql; fi
-  - if [[ "$DB" == "mysql" ]]; then mysql -uroot typo3_test < tests/t3lib/fixtures/cli_users.sql; fi
+#  - if [[ "$DB" == "mysql" ]]; then mysql -uroot typo3_test < tests/t3lib/fixtures/cli_users.sql; fi
   - if [[ "$DB" == "pgsql" ]]; then psql -c "DROP DATABASE IF EXISTS typo3_test;" -U postgres; fi
   - if [[ "$DB" == "pgsql" ]]; then psql -c "create database typo3_test;" -U postgres; fi
 
