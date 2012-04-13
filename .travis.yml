@@ -18,4 +18,4 @@ before_script:
   - cp -r tests/t3lib/fixtures/phpunit typo3conf/ext/
 
 #script: phpunit --configuration phpunit_$DB.xml --coverage-text
-script: php typo3/cli_dispatch.phpsh phpunit--coverage-text tests/
+script: php typo3/cli_dispatch.phpsh phpunit --coverage-text tests/
