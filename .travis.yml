@@ -3,25 +3,15 @@ php:
   - 5.3
 
 env:
-  - DB=mysql PHPCS_EXCLUDE=.git,typo3/sysext/dbal,typo3/sysext/openid/lib,typo3/contrib,typo3/sysext/adodb,typo3/sysext/em/mod1/class.nusoap.php,typo3/sysext/fluid,typo3/sysext/extbase PHPCS_SNIFFS=Generic.Formatting.DisallowMultipleStatements,Generic.PHP.UpperCaseConstant,TYPO3.ControlStructures.DisallowElseIfConstruct,TYPO3.PHP.ClosingPHPTag,TYPO3.Files.EncodingUtf8,TYPO3.Classes.LowercaseClassKeywords,TYPO3.ControlStructures.ValidBreakStatementsInSwitches,Generic.Files.LineEndings,OneInterfacePerFile,Generic.PHP.DisallowShortOpenTag
-# TODO ct 2012-05-23 Who could provide instructions for a working PostgreSQL setup?
+  - DB=mysql
 #  - DB=pgsql
 
 before_script:
-# TODO hh 2012-04-16 Move the build environment to the official repo of the dummy package
-  - git submodule update --init --recursive
-  - git clone git://github.com/helhum/TYPO3-Travis-Integration.git build-environment
-  - mv build-environment/* .
-  - if [[ "$DB" == "mysql" ]]; then mysql -e "DROP DATABASE IF EXISTS typo3_test;" -uroot; fi
   - if [[ "$DB" == "mysql" ]]; then mysql -e "create database IF NOT EXISTS typo3_test;" -uroot; fi
-  - if [[ "$DB" == "mysql" ]]; then mysql -uroot typo3_test < dbimport/introduction.sql; fi
-  - if [[ "$DB" == "mysql" ]]; then mysql -uroot typo3_test < dbimport/cli_users.sql; fi
+  - if [[ "$DB" == "mysql" ]]; then mysql -uroot typo3_test < tests/t3lib/fixtures/introduction.sql; fi
+  - if [[ "$DB" == "mysql" ]]; then mysql -uroot typo3_test < tests/t3lib/fixtures/cli_users.sql; fi
   - if [[ "$DB" == "pgsql" ]]; then psql -c "DROP DATABASE IF EXISTS typo3_test;" -U postgres; fi
   - if [[ "$DB" == "pgsql" ]]; then psql -c "create database typo3_test;" -U postgres; fi
-  - ln -nfs $PWD typo3_src
-# TODO ct 2012-04-13 Just check the files that changed in the commit
-#  - pyrus install pear/PHP_CodeSniffer
-#  - phpenv rehash
-#  - phpcs --sniffs=$PHPCS_SNIFFS -s --extensions=php,inc --ignore=$PHPCS_EXCLUDE .
 
-script: php $PWD/typo3/cli_dispatch.phpsh phpunit $PWD/tests/
+#script: phpunit --configuration phpunit_$DB.xml --coverage-text
+script: php typo3/cli_dispatch.phpsh phpunit--coverage-text tests/
