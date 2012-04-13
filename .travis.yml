@@ -17,6 +17,7 @@ before_script:
   - mkdir -p typo3conf/ext typo3temp uploads
   - cp tests/t3lib/fixtures/localconf.php typo3conf/localconf.php
   - mv tests/t3lib/fixtures/phpunit typo3conf/ext/
+  - ln -nfs $PWD typo3_src
 # TODO ct 2012-04-13 Just check the files that changed in the commit
 #  - pyrus install pear/PHP_CodeSniffer
 #  - phpenv rehash
