@@ -16,6 +16,6 @@ before_script:
   - if [[ "$DB" == "pgsql" ]]; then psql -c "create database typo3_test;" -U postgres; fi
   - mkdir -p typo3conf/ext typo3temp uploads
   - cp tests/t3lib/fixtures/localconf.php typo3conf/localconf.php
-  - cp -r tests/t3lib/fixtures/phpunit typo3conf/ext/
+  - mv tests/t3lib/fixtures/phpunit typo3conf/ext/
 
 script: php -d include_path=.:tests/t3lib/fixtures/phpunit/PEAR/ typo3/cli_dispatch.phpsh phpunit tests/
