@@ -17,8 +17,9 @@ before_script:
   - mkdir -p typo3conf/ext typo3temp uploads
   - cp tests/t3lib/fixtures/localconf.php typo3conf/localconf.php
   - mv tests/t3lib/fixtures/phpunit typo3conf/ext/
-  - pyrus install pear/PHP_CodeSniffer
-  - phpenv rehash
-  - phpcs --sniffs=$PHPCS_SNIFFS -s --extensions=php,inc --ignore=$PHPCS_EXCLUDE .
+# TODO ct 2012-04-13 Just check the files that changed in the commit
+#  - pyrus install pear/PHP_CodeSniffer
+#  - phpenv rehash
+#  - phpcs --sniffs=$PHPCS_SNIFFS -s --extensions=php,inc --ignore=$PHPCS_EXCLUDE .
 
 script: php typo3/cli_dispatch.phpsh phpunit tests/
