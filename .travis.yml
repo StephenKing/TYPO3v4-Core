@@ -5,6 +5,8 @@ php:
 env:
   - DB=mysql
 #  - DB=pgsql
+  - PHPCS_EXCLUDE=.git,typo3/sysext/dbal,typo3/sysext/openid/lib,typo3/contrib,typo3/sysext/adodb,typo3/sysext/em/mod1/class.nusoap.php,typo3/sysext/fluid,typo3/sysext/extbase
+  - PHPCS_SNIFFS=Generic.Formatting.DisallowMultipleStatements,Generic.PHP.UpperCaseConstant,TYPO3.ControlStructures.DisallowElseIfConstruct,TYPO3.PHP.ClosingPHPTag,TYPO3.Files.EncodingUtf8,TYPO3.Classes.LowercaseClassKeywords,TYPO3.ControlStructures.ValidBreakStatementsInSwitches,Generic.Files.LineEndings,OneInterfacePerFile,Generic.PHP.DisallowShortOpenTag
 
 before_script:
   - git submodule update --init --recursive
@@ -17,5 +19,8 @@ before_script:
   - mkdir -p typo3conf/ext typo3temp uploads
   - cp tests/t3lib/fixtures/localconf.php typo3conf/localconf.php
   - mv tests/t3lib/fixtures/phpunit typo3conf/ext/
+  - pyrus install pear/PHP_CodeSniffer
+  - phpenv rehash
+  - phpcs --sniffs=$PHPCS_SNIFFS -s --extensions=php,inc --ignore=$PHPCS_EXCLUDE .
 
 script: php typo3/cli_dispatch.phpsh phpunit tests/
