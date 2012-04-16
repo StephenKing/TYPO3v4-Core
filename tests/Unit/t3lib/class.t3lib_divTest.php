@@ -32,7 +32,6 @@
  * @subpackage t3lib
  */
 class t3lib_divTest extends tx_phpunit_testcase {
-
 	/**
 	 * Enable backup of global and system variables
 	 *
@@ -52,6 +51,166 @@ class t3lib_divTest extends tx_phpunit_testcase {
 		t3lib_div::purgeInstances();
 	}
 
+	///////////////////////////
+	// Tests concerning _GP
+	///////////////////////////
+
+	/**
+	 * @test
+	 * @dataProvider gpDataProvider
+	 */
+	public function canRetrieveValueWithGP($key, $get, $post, $expected) {
+		$_GET = $get;
+		$_POST = $post;
+		$this->assertSame($expected, t3lib_div::_GP($key));
+	}
+
+	/**
+	 * Data provider for canRetrieveValueWithGP.
+	 * All test values also check whether slashes are stripped properly.
+	 *
+	 * @return array
+	 */
+	public function gpDataProvider() {
+		return array(
+			'No key parameter'
+				=> array(NULL, array(), array(), NULL),
+			'Key not found'
+				=> array('cake', array(), array(), NULL),
+			'Value only in GET'
+				=> array('cake', array('cake' => 'li\\e'), array(), 'lie'),
+			'Value only in POST'
+				=> array('cake', array(), array('cake' => 'l\\ie'), 'lie'),
+			'Value from POST preferred over GET'
+				=> array('cake', array('cake' => 'is a'), array('cake' => '\\lie'), 'lie'),
+			'Value can be an array'
+				=> array(
+					'cake',
+					array('cake' => array('is a' => 'l\\ie')),
+					array(),
+					array('is a' => 'lie')
+				),
+		);
+	}
+
+	///////////////////////////
+	// Tests concerning _GPmerged
+	///////////////////////////
+
+	/**
+	 * @test
+	 * @dataProvider gpMergedDataProvider
+	 */
+	public function gpMergedWillMergeArraysFromGetAndPost($get, $post, $expected) {
+		$_POST = $post;
+		$_GET = $get;
+		$this->assertEquals($expected, t3lib_div::_GPmerged('cake'));
+	}
+
+	/**
+	 * Data provider for gpMergedWillMergeArraysFromGetAndPost
+	 *
+	 * @return array
+	 */
+	public function gpMergedDataProvider() {
+		$fullDataArray = array('cake' => array('a' => 'is a','b' => 'lie'));
+		$postPartData = array('cake' => array('b' => 'lie'));
+		$getPartData = array('cake' => array('a' => 'is a'));
+		$getPartDataModified = array('cake' => array('a' => 'is not a'));
+		return array(
+			'Key doesn\' exist'
+				=> array(array('foo'), array('bar'), array()),
+			'No POST data'
+				=> array($fullDataArray, array(), $fullDataArray['cake']),
+			'No GET data'
+				=> array(array(), $fullDataArray, $fullDataArray['cake']),
+			'POST and GET are merged'
+				=> array($getPartData, $postPartData, $fullDataArray['cake']),
+			'POST is preferred over GET'
+				=> array($getPartDataModified, $fullDataArray, $fullDataArray['cake'])
+		);
+	}
+
+	///////////////////////////////
+	// Tests concerning _GET / _POST
+	///////////////////////////////
+
+	/**
+	 * Data provider for canRetrieveGlobalInputsThroughGet
+	 * and canRetrieveGlobalInputsThroughPost
+	 *
+	 * @return array
+	 */
+	public function getAndPostDataProvider() {
+		return array(
+			'Requested input data doesn\'t exist'
+				=> array('cake', array(), NULL),
+			'No key will return entire input data'
+				=> array(NULL, array('cake' => 'l\\ie'), array('cake' => 'lie')),
+			'Can retrieve specific input'
+				=> array('cake', array('cake' => 'li\\e', 'foo'), 'lie'),
+			'Can retrieve nested input data'
+				=> array('cake', array('cake' => array('is a' => 'l\\ie')), array('is a' => 'lie'))
+		);
+	}
+
+	/**
+	 * @test
+	 * @dataProvider getAndPostDataProvider
+	 */
+	public function canRetrieveGlobalInputsThroughGet($key, $get, $expected) {
+		$_GET = $get;
+		$this->assertSame($expected, t3lib_div::_GET($key));
+	}
+
+	/**
+	 * @test
+	 * @dataProvider getAndPostDataProvider
+	 */
+	public function canRetrieveGlobalInputsThroughPost($key, $post, $expected) {
+		$_POST = $post;
+		$this->assertSame($expected, t3lib_div::_POST($key));
+	}
+
+	///////////////////////////////
+	// Tests concerning _GETset
+	///////////////////////////////
+
+	/**
+	 * @test
+	 * @dataProvider getSetDataProvider
+	 */
+	public function canSetNewGetInputValues($input, $key, $expected, $getPreset=array()) {
+		$_GET = $getPreset;
+		t3lib_div::_GETset($input, $key);
+		$this->assertSame($expected, $_GET);
+	}
+
+	/**
+	 * Data provider for canSetNewGetInputValues
+	 *
+	 * @return array
+	 */
+	public function getSetDataProvider() {
+		return array(
+			'No input data used without target key'
+				=> array(NULL, NULL, array()),
+			'No input data used with target key'
+				=> array(NULL, 'cake', array('cake' => '')),
+			'No target key used with string input data'
+				=> array('data', NULL, array()),
+			'No target key used with array input data'
+				=> array(array('cake' => 'lie'), NULL, array('cake' => 'lie')),
+			'Target key and string input data'
+				=> array('lie', 'cake', array('cake' => 'lie')),
+			'Replace existing GET data'
+				=> array('lie', 'cake', array('cake' => 'lie'), array('cake' => 'is a lie')),
+			'Target key pointing to sublevels and string input data'
+				=> array('lie', 'cake|is', array('cake' => array('is' => 'lie'))),
+			'Target key pointing to sublevels and array input data'
+				=> array(array('a' => 'lie'), 'cake|is', array('cake' => array('is' => array('a' => 'lie'))))
+		);
+	}
 
 	///////////////////////////////
 	// Tests concerning gif_compress
@@ -70,7 +229,7 @@ class t3lib_divTest extends tx_phpunit_testcase {
 		}
 
 		$testFinder = t3lib_div::makeInstance('Tx_Phpunit_Service_TestFinder');
-		$fixtureGifFile = $testFinder->getAbsoluteCoreTestsPath() . 't3lib/fixtures/clear.gif';
+		$fixtureGifFile = $testFinder->getAbsoluteCoreTestsPath() . 'Unit/t3lib/fixtures/clear.gif';
 
 		$GLOBALS['TYPO3_CONF_VARS']['GFX']['gif_compress'] = TRUE;
 
@@ -97,7 +256,7 @@ class t3lib_divTest extends tx_phpunit_testcase {
 		}
 
 		$testFinder = t3lib_div::makeInstance('Tx_Phpunit_Service_TestFinder');
-		$fixtureGifFile = $testFinder->getAbsoluteCoreTestsPath() . 't3lib/fixtures/clear.gif';
+		$fixtureGifFile = $testFinder->getAbsoluteCoreTestsPath() . 'Unit/t3lib/fixtures/clear.gif';
 
 		$GLOBALS['TYPO3_CONF_VARS']['GFX']['gdlib'] = TRUE;
 		$GLOBALS['TYPO3_CONF_VARS']['GFX']['gdlib_png'] = FALSE;
@@ -133,7 +292,7 @@ class t3lib_divTest extends tx_phpunit_testcase {
 		}
 
 		$testFinder = t3lib_div::makeInstance('Tx_Phpunit_Service_TestFinder');
-		$fixturePngFile = $testFinder->getAbsoluteCoreTestsPath() . 't3lib/fixtures/clear.png';
+		$fixturePngFile = $testFinder->getAbsoluteCoreTestsPath() . 'Unit/t3lib/fixtures/clear.png';
 
 		$GLOBALS['TYPO3_CONF_VARS']['FE']['png_to_gif'] = TRUE;
 
@@ -168,7 +327,7 @@ class t3lib_divTest extends tx_phpunit_testcase {
 		}
 
 		$testFinder = t3lib_div::makeInstance('Tx_Phpunit_Service_TestFinder');
-		$testGifFile = $testFinder->getAbsoluteCoreTestsPath() . 't3lib/fixtures/clear.gif';
+		$testGifFile = $testFinder->getAbsoluteCoreTestsPath() . 'Unit/t3lib/fixtures/clear.gif';
 
 			// Set target permissions and run method
 		$GLOBALS['TYPO3_CONF_VARS']['BE']['fileCreateMask'] = '0777';
@@ -489,6 +648,182 @@ class t3lib_divTest extends tx_phpunit_testcase {
 		$this->assertFalse(t3lib_div::cmpFQDN($baseHost, $list));
 	}
 
+	///////////////////////////////
+	// Tests concerning inList
+	///////////////////////////////
+
+	/**
+	 * @test
+	 *
+	 * @param string $haystack
+	 *
+	 * @dataProvider inListForItemContainedReturnsTrueDataProvider
+	 */
+	public function inListForItemContainedReturnsTrue($haystack) {
+		$this->assertTrue(
+			t3lib_div::inList($haystack, 'findme')
+		);
+	}
+
+	/**
+	 * Data provider for inListForItemContainedReturnsTrue.
+	 *
+	 * @return array
+	 */
+	public function inListForItemContainedReturnsTrueDataProvider() {
+		return array(
+			'Element as second element of four items' => array('one,findme,three,four'),
+			'Element at beginning of list' => array('findme,one,two'),
+			'Element at end of list' => array('one,two,findme'),
+			'One item list' => array('findme'),
+		);
+	}
+
+	/**
+	 * @test
+	 *
+	 * @param string $haystack
+	 *
+	 * @dataProvider inListForItemNotContainedReturnsFalseDataProvider
+	 */
+	public function inListForItemNotContainedReturnsFalse($haystack) {
+		$this->assertFalse(
+			t3lib_div::inList($haystack, 'findme')
+		);
+	}
+
+	/**
+	 * Data provider for inListForItemNotContainedReturnsFalse.
+	 *
+	 * @return array
+	 */
+	public function inListForItemNotContainedReturnsFalseDataProvider() {
+		return array(
+			'Four item list' => array('one,two,three,four'),
+			'One item list' => array('one'),
+			'Empty list' => array(''),
+		);
+	}
+
+	///////////////////////////////
+	// Tests concerning rmFromList
+	///////////////////////////////
+
+	/**
+	 * @test
+	 *
+	 * @param string $initialList
+	 * @param string $listWithElementRemoved
+	 *
+	 * @dataProvider rmFromListRemovesElementsFromCommaSeparatedListDataProvider
+	 */
+	public function rmFromListRemovesElementsFromCommaSeparatedList($initialList, $listWithElementRemoved) {
+		$this->assertSame(
+			$listWithElementRemoved,
+			t3lib_div::rmFromList('removeme', $initialList)
+		);
+	}
+
+	/**
+	 * Data provider for rmFromListRemovesElementsFromCommaSeparatedList
+	 *
+	 * @return array
+	 */
+	public function rmFromListRemovesElementsFromCommaSeparatedListDataProvider() {
+		return array(
+			'Element as second element of three' => array('one,removeme,two', 'one,two'),
+			'Element at beginning of list' => array('removeme,one,two', 'one,two'),
+			'Element at end of list' => array('one,two,removeme', 'one,two'),
+			'One item list' => array('removeme', ''),
+			'Element not contained in list' => array('one,two,three', 'one,two,three'),
+			'Empty list' => array('', ''),
+		);
+	}
+
+	///////////////////////////////
+	// Tests concerning expandList
+	///////////////////////////////
+
+	/**
+	 * @test
+	 *
+	 * @param string $list
+	 * @param string $expectation
+	 *
+	 * @dataProvider expandListExpandsIntegerRangesDataProvider
+	 */
+	public function expandListExpandsIntegerRanges($list, $expectation) {
+		$this->assertSame(
+			$expectation,
+			t3lib_div::expandList($list)
+		);
+	}
+
+	/**
+	 * Data provider for expandListExpandsIntegerRangesDataProvider
+	 *
+	 * @return array
+	 */
+	public function expandListExpandsIntegerRangesDataProvider() {
+		return array(
+			'Expand for the same number' => array('1,2-2,7', '1,2,7'),
+			'Small range expand with parameters reversed ignores reversed items' => array('1,5-3,7', '1,7'),
+			'Small range expand' => array('1,3-5,7', '1,3,4,5,7'),
+			'Expand at beginning' => array('3-5,1,7', '3,4,5,1,7'),
+			'Expand at end' => array('1,7,3-5', '1,7,3,4,5'),
+			'Multiple small range expands' => array('1,3-5,7-10,12', '1,3,4,5,7,8,9,10,12'),
+			'One item list' => array('1-5', '1,2,3,4,5'),
+			'Nothing to expand' => array('1,2,3,4', '1,2,3,4'),
+			'Empty list' => array('', ''),
+		);
+	}
+
+	/**
+	 * @test
+	 */
+	public function expandListExpandsForTwoThousandElementsExpandsOnlyToThousandElementsMaximum() {
+		$list = t3lib_div::expandList('1-2000');
+
+		$this->assertSame(
+			1000,
+			count(explode(',', $list))
+		);
+	}
+
+	///////////////////////////////
+	// Tests concerning uniqueList
+	///////////////////////////////
+
+	/**
+	 * @test
+	 *
+	 * @param string $initialList
+	 * @param string $unifiedList
+	 *
+	 * @dataProvider uniqueListUnifiesCommaSeparatedListDataProvider
+	 */
+	public function uniqueListUnifiesCommaSeparatedList($initialList, $unifiedList) {
+		$this->assertSame(
+			$unifiedList,
+			t3lib_div::uniqueList($initialList)
+		);
+	}
+
+	/**
+	 * Data provider for uniqueListUnifiesCommaSeparatedList
+	 *
+	 * @return array
+	 */
+	public function uniqueListUnifiesCommaSeparatedListDataProvider() {
+		return array(
+			'List without duplicates' => array('one,two,three', 'one,two,three'),
+			'List with two consecutive duplicates' => array('one,two,two,three,three', 'one,two,three'),
+			'List with non-consecutive duplicates' => array('one,two,three,two,three', 'one,two,three'),
+			'One item list' => array('one', 'one'),
+			'Empty list' => array('', ''),
+		);
+	}
+
 
 	///////////////////////////////
 	// Tests concerning isFirstPartOfStr
@@ -551,6 +886,39 @@ class t3lib_divTest extends tx_phpunit_testcase {
 		$this->assertFalse(t3lib_div::isFirstPartOfStr($string, $part));
 	}
 
+	///////////////////////////////
+	// Tests concerning formatSize
+	///////////////////////////////
+
+	/**
+	 * @test
+	 * @dataProvider formatSizeDataProvider
+	 */
+	public function formatSizeTranslatesBytesToHigherOrderRepresentation($size, $label, $expected) {
+		$this->assertEquals($expected, t3lib_div::formatSize($size, $label));
+	}
+
+	/**
+	 * Data provider for formatSizeTranslatesBytesToHigherOrderRepresentation
+	 *
+	 * @return array
+	 */
+	public function formatSizeDataProvider() {
+		return array(
+			'Bytes keep beeing bytes (min)' => array(1, '', '1 '),
+			'Bytes keep beeing bytes (max)' => array(899, '', '899 '),
+			'Kilobytes are detected' => array(1024, '', '1.0 K'),
+			'Megabytes are detected' => array(1048576, '', '1.0 M'),
+			'Gigabytes are detected' => array(1073741824, '', '1.0 G'),
+			'Decimal is omitted for large kilobytes' => array(31080, '', '30 K'),
+			'Decimal is omitted for large megabytes' => array(31458000, '', '30 M'),
+			'Decimal is omitted for large gigabytes' => array(32212254720, '', '30 G'),
+			'Label for bytes can be exchanged' => array(1, ' Foo|||', '1 Foo'),
+			'Label for kilobytes can be exchanged' => array(1024, '| Foo||', '1.0 Foo'),
+			'Label for megabyes can be exchanged' => array(1048576, '|| Foo|', '1.0 Foo'),
+			'Label for gigabytes can be exchanged' => array(1073741824, '||| Foo', '1.0 Foo')
+		);
+	}
 
 	///////////////////////////////
 	// Tests concerning splitCalc
@@ -584,6 +952,135 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	 */
 	public function splitCalcCorrectlySplitsExpression($expected, $expression) {
 		$this->assertEquals($expected, t3lib_div::splitCalc($expression, '+-*/'));
+	}
+
+	///////////////////////////////
+	// Tests concerning htmlspecialchars_decode
+	///////////////////////////////
+
+	/**
+	 * @test
+	 */
+	public function htmlspecialcharsDecodeReturnsDecodedString() {
+		$string ='<typo3 version="6.0">&nbsp;</typo3>';
+		$encoded = htmlspecialchars($string);
+		$decoded = t3lib_div::htmlspecialchars_decode($encoded);
+		$this->assertEquals($string, $decoded);
+	}
+
+	///////////////////////////////
+	// Tests concerning deHSCentities
+	///////////////////////////////
+
+	/**
+	 * @test
+	 * @dataProvider deHSCentitiesReturnsDecodedStringDataProvider
+	 */
+	public function deHSCentitiesReturnsDecodedString($input, $expected) {
+		$this->assertEquals($expected, t3lib_div::deHSCentities($input));
+	}
+
+	/**
+	 * Data provider for deHSCentitiesReturnsDecodedString
+	 *
+	 * @return array
+	 */
+	public function deHSCentitiesReturnsDecodedStringDataProvider() {
+		return array(
+			'Empty string' => array('', ''),
+			'Double encoded &' => array('&amp;amp;', '&amp;'),
+			'Double encoded numeric entity' => array('&amp;#1234;', '&#1234;'),
+			'Double encoded hexadecimal entity' => array('&amp;#x1b;', '&#x1b;'),
+			'Single encoded entities are not touched' => array('&amp; &#1234; &#x1b;', '&amp; &#1234; &#x1b;')
+		);
+	}
+
+	//////////////////////////////////
+	// Tests concerning slashJS
+	//////////////////////////////////
+
+	/**
+	 * @test
+	 * @dataProvider slashJsDataProvider
+	 */
+	public function slashJsEscapesSingleQuotesAndSlashes($input, $extended, $expected) {
+		$this->assertEquals($expected, t3lib_div::slashJS($input, $extended));
+	}
+
+	/**
+	 * Data provider for slashJsEscapesSingleQuotesAndSlashes
+	 *
+	 * @return array
+	 */
+	public function slashJsDataProvider() {
+		return array(
+			'Empty string is not changed' => array('', FALSE, ''),
+			'Normal string is not changed' => array('The cake is a lie √', FALSE, 'The cake is a lie √'),
+			'String with single quotes' => array("The 'cake' is a lie", FALSE, "The \\'cake\\' is a lie"),
+			'String with single quotes and backslashes - just escape single quotes'
+				=> array("The \\'cake\\' is a lie", FALSE, "The \\\\'cake\\\\' is a lie"),
+			'String with single quotes and backslashes - escape both'
+				=> array("The \\'cake\\' is a lie", TRUE, "The \\\\\\'cake\\\\\\' is a lie")
+		);
+	}
+
+	//////////////////////////////////
+	// Tests concerning rawUrlEncodeJS
+	//////////////////////////////////
+
+	/**
+	 * @test
+	 */
+	public function rawUrlEncodeJsPreservesWhitespaces() {
+		$input = "Encode 'me', but leave my spaces √";
+		$expected = "Encode %27me%27%2C but leave my spaces %E2%88%9A";
+		$this->assertEquals($expected, t3lib_div::rawUrlEncodeJS($input));
+	}
+
+	//////////////////////////////////
+	// Tests concerning rawUrlEncodeJS
+	//////////////////////////////////
+
+	/**
+	 * @test
+	 */
+	public function rawUrlEncodeFpPreservesSlashes() {
+		$input = "Encode 'me', but leave my / √";
+		$expected = "Encode%20%27me%27%2C%20but%20leave%20my%20/%20%E2%88%9A";
+		$this->assertEquals($expected, t3lib_div::rawUrlEncodeFP($input));
+	}
+
+	//////////////////////////////////
+	// Tests concerning strtoupper / strtolower
+	//////////////////////////////////
+
+	/**
+	 * Data provider for strtoupper and strtolower
+	 *
+	 * @return array
+	 */
+	public function strtouppperDataProvider() {
+		return array(
+			'Empty string' => array('', ''),
+			'String containing only latin characters' => array('the cake is a lie.', 'THE CAKE IS A LIE.'),
+			'String with umlauts and accent characters' => array('the càkê is ä lie.', 'THE CàKê IS ä LIE.')
+		);
+	}
+
+	/**
+	 * @test
+	 * @dataProvider strtouppperDataProvider
+	 */
+	public function strtoupperConvertsOnlyLatinCharacters($input, $expected) {
+		$this->assertEquals($expected, t3lib_div::strtoupper($input));
+	}
+
+	/**
+	 * @test
+	 * @dataProvider strtouppperDataProvider
+	 */
+	public function strtolowerConvertsOnlyLatinCharacters($expected, $input) {
+		$this->assertEquals($expected, t3lib_div::strtolower($input));
 	}
 
 
@@ -667,6 +1164,35 @@ class t3lib_divTest extends tx_phpunit_testcase {
 		$this->assertFalse(t3lib_div::validEmail($address));
 	}
 
+	//////////////////////////////////
+	// Tests concerning inArray
+	//////////////////////////////////
+
+	/**
+	 * @test
+	 * @dataProvider inArrayDataProvider
+	 */
+	public function inArrayChecksStringExistenceWithinArray($array, $item, $expected) {
+		$this->assertEquals($expected, t3lib_div::inArray($array, $item));
+	}
+
+	/**
+	 * Data provider for inArrayChecksStringExistenceWithinArray
+	 *
+	 * @return array
+	 */
+	public function inArrayDataProvider() {
+		return array(
+			'Empty array' => array(array(), 'search', FALSE),
+			'One item array no match' => array(array('one'), 'two', FALSE),
+			'One item array match' => array(array('one'), 'one', TRUE),
+			'Multiple items array no match' => array(array('one', 2, 'three', 4), 'four', FALSE),
+			'Multiple items array match' => array(array('one', 2, 'three', 4), 'three', TRUE),
+			'Integer search items can match string values' => array(array('0', '1', '2'), 1, TRUE),
+			'Search item is not casted to integer for a match' => array(array(4), '4a', FALSE),
+			'Empty item won\'t match - in contrast to the php-builtin ' => array(array(0, 1, 2), '', FALSE),
+		);
+	}
 
 	//////////////////////////////////
 	// Tests concerning intExplode
@@ -684,37 +1210,214 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	}
 
 	//////////////////////////////////
-	// Tests concerning intInRange
+	// Tests concerning keepItemsInArray
 	//////////////////////////////////
+
 	/**
-	 * Data provider for intInRangeForcesIntegerIntoBoundaries
-	 *
-	 * @return array expected values, arithmetic expression
+	 * @test
+	 * @dataProvider keepItemsInArrayWorksWithOneArgumentDataProvider
 	 */
-	public function intInRangeForcesIntegerIntoDefaultBoundariesDataProvider() {
+	public function keepItemsInArrayWorksWithOneArgument($search, $array, $expected) {
+		$this->assertEquals($expected, t3lib_div::keepItemsInArray($array, $search));
+	}
+
+	/**
+	 * Data provider for keepItemsInArrayWorksWithOneArgument
+	 *
+	 * @return array
+	 */
+	public function keepItemsInArrayWorksWithOneArgumentDataProvider() {
+		$array = array(
+			'one' => 'one',
+			'two' => 'two',
+			'three' => 'three'
+		);
 		return array(
-			'negativeValue' => array(0, -10),
-			'normalValue' => array(30, 30),
-			'veryHighValue' => array(2000000000, PHP_INT_MAX),
-			'zeroValue' => array(0, 0),
-			'anotherNormalValue' => array(12309, 12309)
+			'Empty argument will match "all" elements' => array(NULL, $array, $array),
+			'No match' => array('four', $array, array()),
+			'veryHighValue' => array(PHP_INT_SIZE - 100, PHP_INT_SIZE),
+			'Multiple matches' => array('two,one', $array, array('one' => 'one', 'two' => 'two')),
+			'Argument can be an array' => array(array('three'), $array, array('three' => 'three'))
+		);
+	}
+
+	/**
+	 * Shows the exmaple from the doc comment where
+	 * a function is used to reduce the sub arrays to one item which
+	 * is then used for the matching.
+	 *
+	 * @test
+	 * @dataProvider intInRangeForcesIntegerIntoDefaultBoundariesDataProvider
+	 */
+	public function keepItemsInArrayCanUseCallbackOnSearchArray() {
+		$array = array(
+			'aa' => array('first', 'second'),
+			'bb' => array('third', 'fourth'),
+			'cc' => array('fifth', 'sixth')
+		);
+		$expected = array('bb' => array('third', 'fourth'));
+		$keepItems = 'third';
+		$getValueFunc = create_function('$value', 'return $value[0];');
+
+		$match = t3lib_div::keepItemsInArray($array, $keepItems, $getValueFunc);
+		$this->assertEquals($expected, $match);
+	}
+
+	//////////////////////////////////
+	// Tests concerning implodeArrayForUrl / explodeUrl2Array
+	//////////////////////////////////
+
+	/**
+	 * Data provider for implodeArrayForUrlBuildsValidParameterString and
+	 * explodeUrl2ArrayTransformsParameterStringToArray
+	 *
+	 * @return array
+	 */
+	public function implodeArrayForUrlDataProvider() {
+		$valueArray = array('one' => '√', 'two' => 2);
+		return array(
+			'Empty input'
+				=> array('foo', array(), ''),
+			'String parameters'
+				=> array('foo', $valueArray, '&foo[one]=%E2%88%9A&foo[two]=2'),
+			'Nested array parameters'
+				=> array('foo', array($valueArray), '&foo[0][one]=%E2%88%9A&foo[0][two]=2'),
+			'Keep blank parameters'
+				=> array('foo', array('one'=> '√', ''), '&foo[one]=%E2%88%9A&foo[0]=')
 		);
 	}
 
 	/**
 	 * @test
-	 * @dataProvider intInRangeForcesIntegerIntoDefaultBoundariesDataProvider
+	 * @dataProvider implodeArrayForUrlDataProvider
 	 */
-	public function intInRangeForcesIntegerIntoDefaultBoundaries($expected, $value) {
-		$this->assertEquals($expected, t3lib_div::intInRange($value, 0));
+	public function implodeArrayForUrlBuildsValidParameterString($name, $input, $expected) {
+		$this->assertSame($expected, t3lib_div::implodeArrayForUrl($name, $input));
 	}
 
 	/**
 	 * @test
 	 */
-	public function intInRangeSetsDefaultValueIfZeroValueIsGiven() {
-		$this->assertEquals(42, t3lib_div::intInRange('', 0, 2000000000, 42));
+	public function implodeArrayForUrlCanSkipEmptyParameters() {
+		$input = array('one'=> '√', '');
+		$expected = '&foo[one]=%E2%88%9A';
+		$this->assertSame($expected, t3lib_div::implodeArrayForUrl('foo', $input, '', TRUE));
 	}
+
+	/**
+	 * @test
+	 */
+	public function implodeArrayForUrlCanUrlEncodeKeyNames() {
+		$input = array('one'=> '√', '');
+		$expected = '&foo%5Bone%5D=%E2%88%9A&foo%5B0%5D=';
+		$this->assertSame($expected, t3lib_div::implodeArrayForUrl('foo', $input, '', FALSE, TRUE));
+	}
+
+	/**
+	 * @test
+	 * @dataProvider implodeArrayForUrlDataProvider
+	 */
+	public function explodeUrl2ArrayTransformsParameterStringToNestedArray($name, $array, $input) {
+		$expected = $array ? array($name => $array) : array();
+		$this->assertEquals($expected, t3lib_div::explodeUrl2Array($input, TRUE));
+	}
+
+	/**
+	 * @test
+	 * @dataProvider explodeUrl2ArrayDataProvider
+	 */
+	public function explodeUrl2ArrayTransformsParameterStringToFlatArray($input, $expected) {
+		$this->assertEquals($expected, t3lib_div::explodeUrl2Array($input, FALSE));
+	}
+
+	/**
+	 * Data provider for explodeUrl2ArrayTransformsParameterStringToFlatArray
+	 *
+	 * @return array
+	 */
+	public function explodeUrl2ArrayDataProvider() {
+		return array(
+			'Empty string'
+				=> array('', array()),
+			'Simple parameter string'
+				=> array('&one=%E2%88%9A&two=2', array('one' => '√', 'two' => 2)),
+			'Nested parameter string'
+				=> array('&foo[one]=%E2%88%9A&two=2', array('foo[one]' => '√', 'two' => 2))
+		);
+	}
+
+	//////////////////////////////////
+	// Tests concerning compileSelectedGetVarsFromArray
+	//////////////////////////////////
+
+	/**
+	 * @test
+	 */
+	public function compileSelectedGetVarsFromArrayFiltersIncomingData() {
+		$filter = 'foo,bar';
+		$getArray = array('foo' => 1, 'cake' => 'lie');
+		$expected = array('foo' => 1);
+		$result = t3lib_div::compileSelectedGetVarsFromArray($filter, $getArray, FALSE);
+		$this->assertSame($expected, $result);
+	}
+
+	/**
+	 * @test
+	 */
+	public function compileSelectedGetVarsFromArrayUsesGetPostDataFallback() {
+		$_GET['bar'] = '2';
+		$filter = 'foo,bar';
+		$getArray = array('foo' => 1, 'cake' => 'lie');
+		$expected = array('foo' => 1, 'bar' => '2');
+		$result = t3lib_div::compileSelectedGetVarsFromArray($filter, $getArray, TRUE);
+		$this->assertSame($expected, $result);
+	}
+
+	//////////////////////////////////
+	// Tests concerning remapArrayKeys
+	//////////////////////////////////
+
+	/**
+	 * @test
+	 */
+	public function remapArrayKeysExchangesKeysWithGivenMapping() {
+		$array = array(
+			'one' => 'one',
+			'two' => 'two',
+			'three' => 'three'
+		);
+		$keyMapping = array(
+			'one' => '1',
+			'two' => '2'
+		);
+		$expected = array(
+			'1' => 'one',
+			'2' => 'two',
+			'three' => 'three'
+		);
+
+		t3lib_div::remapArrayKeys($array, $keyMapping);
+		$this->assertEquals($expected, $array);
+	}
+
+	//////////////////////////////////
+	// Tests concerning array_merge
+	//////////////////////////////////
+
+	/**
+	 * Test demonstrating array_merge. This is actually
+	 * a native PHP operator, therefore this test is mainly used to
+	 * show how this function can be used.
+	 *
+	 * @test
+	 */
+	public function arrayMergeKeepsIndexesAfterMerge() {
+		$array1 = array(10 => 'FOO', '20' => 'BAR');
+		$array2 = array('5' => 'PLONK');
+		$expected = array('5' => 'PLONK', 10 => 'FOO', '20' => 'BAR');
+		$this->assertEquals($expected, t3lib_div::array_merge($array1, $array2));
+	}
+
 
 	//////////////////////////////////
 	// Tests concerning int_from_ver
@@ -2848,7 +3551,7 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	/**
 	 * @test
 	 */
-	public function splitFileRefReturnsFileTypeNotForFolders(){
+	public function splitFileRefReturnsFileTypeNotForFolders() {
 		$directoryName = uniqid('test_') . '.com';
 		$directoryPath = PATH_site . 'typo3temp/';
 		$directory = $directoryPath . $directoryName;
@@ -3356,6 +4059,109 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	}
 
 	///////////////////////////////////////////////////
+	// Tests concerning callUserFunction
+	///////////////////////////////////////////////////
+
+	/**
+	 * @test
+	 * @dataProvider callUserFunctionInvalidParameterDataprovider
+	 */
+	public function callUserFunctionWillReturnFalseForInvalidParameters($functionName) {
+		$inputData = array('foo' => 'bar');
+			// omit the debug() output
+		ob_start();
+		$result = t3lib_div::callUserFunction($functionName, $inputData, $this, 'user_');
+		ob_end_clean();
+		$this->assertFalse($result);
+	}
+
+	/**
+	 * @test
+	 * @dataProvider callUserFunctionInvalidParameterDataprovider
+	 * @expectedException InvalidArgumentException
+	 */
+	public function callUserFunctionWillThrowExceptionForInvalidParameters($functionName) {
+		$inputData = array('foo' => 'bar');
+		t3lib_div::callUserFunction($functionName, $inputData, $this, 'user_', 2);
+	}
+	/**
+	 * Data provider for callUserFunctionInvalidParameterDataprovider and
+	 * callUserFunctionWillThrowExceptionForInvalidParameters.
+	 *
+	 * @return array
+	 */
+	public function callUserFunctionInvalidParameterDataprovider() {
+		return array(
+			'Function is not prefixed' => array('t3lib_divTest->calledUserFunction'),
+			'Class doesn\'t exists' => array('t3lib_divTest21345->user_calledUserFunction'),
+			'No method name' => array('t3lib_divTest'),
+			'No class name' => array('->user_calledUserFunction'),
+			'No function name' => array(''),
+		);
+	}
+
+	/**
+	 * Above tests already showed that the prefix is checked properly,
+	 * therefore this test skips the prefix and enables to inline the instantly
+	 * created function (who's name doesn't have a prefix).
+	 *
+	 * @test
+	 */
+	public function callUserFunctionCanCallFunction() {
+		$functionName = create_function('', 'return "Worked fine";');
+		$inputData = array('foo' => 'bar');
+		$result = t3lib_div::callUserFunction($functionName, $inputData, $this, '');
+		$this->assertEquals('Worked fine', $result);
+	}
+
+	/**
+	 * @test
+	 */
+	public function callUserFunctionCanCallMethod() {
+		$inputData = array('foo' => 'bar');
+		$result = t3lib_div::callUserFunction('t3lib_divTest->user_calledUserFunction', $inputData, $this);
+		$this->assertEquals('Worked fine', $result);
+	}
+
+	/**
+	 * @return string
+	 */
+	public function user_calledUserFunction() {
+		return "Worked fine";
+	}
+
+	/**
+	 * @test
+	 */
+	public function callUserFunctionCanPrefixFuncNameWithFilePath() {
+		$inputData = array('foo' => 'bar');
+		$result = t3lib_div::callUserFunction('t3lib/class.t3lib_div.php:t3lib_divTest->user_calledUserFunction', $inputData, $this);
+		$this->assertEquals('Worked fine', $result);
+	}
+
+	/**
+	 * @test
+	 */
+	public function callUserFunctionCanPersistObjectsBetweenCalls() {
+		$inputData = array('called' => array());
+		t3lib_div::callUserFunction('&t3lib_divTest->user_calledUserFunctionCountCallers', $inputData, $this);
+		t3lib_div::callUserFunction('&t3lib_divTest->user_calledUserFunctionCountCallers', $inputData, $this);
+		$this->assertEquals(1, sizeof($inputData['called']));
+	}
+
+	/**
+	 * Takes the object hash and adds it to the passed array. In case
+	 * persisting the objects would not work we'd see two different
+	 * parent objects.
+	 *
+	 * @param $params
+	 */
+	public function user_calledUserFunctionCountCallers(&$params) {
+		$params['called'][spl_object_hash($this)]++;
+	}
+
+
+	///////////////////////////////////////////////////
 	// Tests concerning hasValidClassPrefix
 	///////////////////////////////////////////////////
 
@@ -3573,6 +4379,46 @@ class t3lib_divTest extends tx_phpunit_testcase {
 
 		$result = t3lib_div::array_merge_recursive_overrule($array1, $array2);
 		$this->assertEquals($expected, $result);
+	}
+
+	///////////////////////////////////////////////////
+	// Tests concerning substUrlsInPlainText
+	///////////////////////////////////////////////////
+
+	/**
+	 * @return array
+	 */
+	public function substUrlsInPlainTextDataProvider() {
+		$urlMatch = 'http://example.com/index.php\?RDCT=[0-9a-z]{20}';
+		return array(
+			array('http://only-url.com', '|^' . $urlMatch . '$|'),
+			array('https://only-secure-url.com', '|^' . $urlMatch . '$|'),
+			array('A http://url in the sentence.', '|^A ' . $urlMatch . ' in the sentence\.$|'),
+			array('URL in round brackets (http://www.example.com) in the sentence.', '|^URL in round brackets \(' . $urlMatch . '\) in the sentence.$|'),
+			array('URL in square brackets [http://www.example.com/a/b.php?c[d]=e] in the sentence.', '|^URL in square brackets \[' . $urlMatch .'\] in the sentence.$|'),
+			array('URL in square brackets at the end of the sentence [http://www.example.com/a/b.php?c[d]=e].', '|^URL in square brackets at the end of the sentence \[' . $urlMatch . '].$|'),
+			array('Square brackets in the http://www.url.com?tt_news[uid]=1', '|^Square brackets in the ' . $urlMatch . '$|'),
+			array('URL with http://dot.com.', '|^URL with ' . $urlMatch . '.$|'),
+			array('URL in <a href="http://www.example.com/">a tag</a>', '|^URL in <a href="' . $urlMatch . '">a tag</a\>$|'),
+			array('URL in HTML <b>http://www.example.com</b><br />', '|^URL in HTML <b>' . $urlMatch . '</b><br />$|'),
+			array('URL with http://username@example.com/', '|^URL with ' . $urlMatch . '$|'),
+			array('Secret in URL http://username:secret@example.com', '|^Secret in URL ' . $urlMatch . '$|'),
+			array('URL in quotation marks "http://example.com"', '|^URL in quotation marks "' . $urlMatch . '"$|'),
+			array('URL with umlauts http://müller.de', '|^URL with umlauts ' . $urlMatch . '$|'),
+			array("Multiline\ntext with a http://url.com", "|^Multiline\ntext with a " . $urlMatch . '$|s'),
+			array('http://www.shout.com!', '|^' . $urlMatch . '!$|'),
+			array('And with two URLs http://www.two.com/abc http://urls.com/abc?x=1&y=2', '|^And with two URLs ' . $urlMatch . ' ' . $urlMatch . '$|'),
+		);
+	}
+
+	/**
+	 * @test
+	 * @dataProvider substUrlsInPlainTextDataProvider
+	 * @param string $input Text to recognise URLs from
+	 * @param string $expected Text with correctly detected URLs
+	 */
+	public function substUrlsInPlainText($input, $expectedPreg) {
+		$this->assertTrue(preg_match($expectedPreg, t3lib_div::substUrlsInPlainText($input, 1, 'http://example.com/index.php')) == 1);
 	}
 }
 ?>
