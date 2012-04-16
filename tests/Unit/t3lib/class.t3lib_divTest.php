@@ -1235,7 +1235,7 @@ class t3lib_divTest extends tx_phpunit_testcase {
 		return array(
 			'Empty argument will match "all" elements' => array(NULL, $array, $array),
 			'No match' => array('four', $array, array()),
-			'veryHighValue' => array(PHP_INT_MAX - 100, PHP_INT_MAX),
+			'veryHighValue' => array(2000000000, PHP_INT_MAX),
 			'Multiple matches' => array('two,one', $array, array('one' => 'one', 'two' => 'two')),
 			'Argument can be an array' => array(array('three'), $array, array('three' => 'three'))
 		);
