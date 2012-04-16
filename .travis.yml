@@ -7,7 +7,7 @@ env:
 #  - DB=pgsql
 
 before_script:
-# TODO hh 2012-04-16 Move the build environment to the official repo of the dummy package 
+# TODO hh 2012-04-16 Move the build environment to the official repo of the dummy package
   - git submodule update --init --recursive
   - git clone git://github.com/helhum/TYPO3-Travis-Integration.git build-environment
   - mv build-environment/* .
