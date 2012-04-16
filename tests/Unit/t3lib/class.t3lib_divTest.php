@@ -47,17 +47,6 @@ class t3lib_divTest extends tx_phpunit_testcase {
 	 */
 	protected $backupGlobalsBlacklist = array('TYPO3_DB');
 
-	public function setUp() {
-		# $_SERVER[] = getenv();
-		# if ($_SERVER)
-		if (!defined('PATH_thisScript') && !defined('PATH_site')) {
-			define('PATH_thisScript', dirname(__FILE__));
-			define('PATH_site', '');
-		}
-		$_SERVER['DOCUMENT_ROOT'] = dirname(__FILE__) . "/";
-		$_SERVER['HTTP_HOST'] = "localhost";
-	}
-
 	public function tearDown() {
 		t3lib_div::purgeInstances();
 	}

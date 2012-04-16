@@ -23,4 +23,4 @@ before_script:
 #  - phpenv rehash
 #  - phpcs --sniffs=$PHPCS_SNIFFS -s --extensions=php,inc --ignore=$PHPCS_EXCLUDE .
 
-script: php typo3/cli_dispatch.phpsh phpunit tests/
+script: php $PWD/typo3/cli_dispatch.phpsh phpunit $PWD/tests/
