@@ -183,9 +183,9 @@ class t3lib_file_FileTest extends Tx_Phpunit_TestCase {
 		$mockedOldStorage = $this->getMock('t3lib_file_Storage', array(), array(), '', FALSE);
 		$fixture = new t3lib_file_File(array('uid' => 1, 'foo' => 'asdf', 'baz' => 'fdsw', 'identifier' => '/test', 'storage' => $mockedOldStorage));
 
-		$mockedRepository = $this->getMock('t3lib_file_Repository_StorageRepository');
-		$mockedRepository->expects($this->once())->method('findByUid')->with(2)->will($this->returnValue($mockedNewStorage));
-		t3lib_div::setSingletonInstance('t3lib_file_Repository_StorageRepository', $mockedRepository);
+		$mockedFactory = $this->getMock('t3lib_file_Factory');
+		$mockedFactory->expects($this->once())->method('getStorageObject')->with(2)->will($this->returnValue($mockedNewStorage));
+		t3lib_div::setSingletonInstance('t3lib_file_Factory', $mockedFactory);
 
 		$fixture->updateProperties(array('storage' => 2));
 		$this->assertSame($mockedNewStorage, $fixture->getStorage());
