@@ -32,6 +32,7 @@ require_once('fixture/t3lib_utility_math_fixture_classWithStringRepresentation.p
  * @package TYPO3
  * @subpackage t3lib
  */
+
 class t3lib_utility_MathTest extends tx_phpunit_testcase {
 
 	//////////////////////////////////
@@ -46,7 +47,7 @@ class t3lib_utility_MathTest extends tx_phpunit_testcase {
 		return array(
 			'negativeValue' => array(0, -10),
 			'normalValue' => array(30, 30),
-			'veryHighValue' => array(2000000000, PHP_INT_MAX),
+			'veryHighValue' => array(PHP_INT_MAX - 100, PHP_INT_MAX),
 			'zeroValue' => array(0, 0),
 			'anotherNormalValue' => array(12309, 12309)
 		);
@@ -57,14 +58,14 @@ class t3lib_utility_MathTest extends tx_phpunit_testcase {
 	 * @dataProvider forceIntegerInRangeForcesIntegerIntoDefaultBoundariesDataProvider
 	 */
 	public function forceIntegerInRangeForcesIntegerIntoDefaultBoundaries($expected, $value) {
-		$this->assertEquals($expected, t3lib_utility_Math::forceIntegerInRange($value, 0));
+		 $this->assertEquals($expected, t3lib_utility_Math::forceIntegerInRange($value, 0));
 	}
 
 	/**
 	 * @test
 	 */
 	public function forceIntegerInRangeSetsDefaultValueIfZeroValueIsGiven() {
-		$this->assertEquals(42, t3lib_utility_Math::forceIntegerInRange('', 0, 2000000000, 42));
+		 $this->assertEquals(42, t3lib_utility_Math::forceIntegerInRange('', 0, 2000000000, 42));
 	}
 
 	//////////////////////////////////
