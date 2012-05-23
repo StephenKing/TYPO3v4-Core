@@ -4,6 +4,7 @@ php:
 
 env:
   - DB=mysql PHPCS_EXCLUDE=.git,typo3/sysext/dbal,typo3/sysext/openid/lib,typo3/contrib,typo3/sysext/adodb,typo3/sysext/em/mod1/class.nusoap.php,typo3/sysext/fluid,typo3/sysext/extbase PHPCS_SNIFFS=Generic.Formatting.DisallowMultipleStatements,Generic.PHP.UpperCaseConstant,TYPO3.ControlStructures.DisallowElseIfConstruct,TYPO3.PHP.ClosingPHPTag,TYPO3.Files.EncodingUtf8,TYPO3.Classes.LowercaseClassKeywords,TYPO3.ControlStructures.ValidBreakStatementsInSwitches,Generic.Files.LineEndings,OneInterfacePerFile,Generic.PHP.DisallowShortOpenTag
+# TODO ct 2012-05-23 Who could provide instructions for a working PostgreSQL setup?
 #  - DB=pgsql
 
 before_script:
