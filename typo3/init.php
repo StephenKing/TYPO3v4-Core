@@ -57,6 +57,8 @@
 
 define('TYPO3_MODE', 'BE');
 
+
+
 	// We use require instead of require_once here so we get a fatal error if
 	// classes/Bootstrap.php is accidentally included twice (which would indicate a clear bug).
 require('classes/Bootstrap.php');
