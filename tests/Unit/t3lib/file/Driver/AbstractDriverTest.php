@@ -41,6 +41,10 @@ class t3lib_file_Driver_AbstractDriverTest extends t3lib_file_BaseTestCase {
 	 */
 	protected $fixture;
 
+	public function tearDown() {
+		t3lib_div::purgeInstances();
+	}
+
 	/**
 	 * @return t3lib_file_Driver_AbstractDriver
 	 */
