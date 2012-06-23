@@ -7,6 +7,9 @@ env:
 # TODO ct 2012-05-23 Who could provide instructions for a working PostgreSQL setup?
 #  - DB=pgsql
 
+# TODO ct 2012-06-23 Disable notifications
+notifications:
+  email: false
 before_script:
 # TODO hh 2012-04-16 Move the build environment to the official repo of the dummy package
   - git submodule update --init --recursive
