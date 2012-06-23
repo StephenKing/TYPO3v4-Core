@@ -137,7 +137,7 @@ class t3lib_file_Driver_DriverRegistry implements t3lib_Singleton {
 		}
 
 		if (!array_key_exists($shortName, $this->drivers)) {
-			throw new InvalidArgumentException('Desired storage is not in the list of available storages.', 1314085990);
+			throw new InvalidArgumentException('Desired storage "'.$shortName.'" is not in the list of available storages.'.print_r($this->drivers,true), 1314085990);
 		}
 
 		return $this->drivers[$shortName];
