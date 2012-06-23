@@ -23,6 +23,7 @@ before_script:
   - git submodule update --init --recursive
   - git clone git://github.com/typo3-ci/TYPO3-Travis-Integration.git build-environment
   - mv build-environment/* .
+  - wget "http://git.typo3.org/TYPO3v4/Distributions/Introduction.git?a=blob_plain;f=typo3conf/ext/introduction/Resources/Private/Subpackages/Introduction/Database/introduction.sql;h=a3b8978d4b3bebcc77a5afc703841f9acb9ab9f6;hb=dc59462d29554b360fe4a88b6856a723f0cee7e5" -O dbimport/introduction.sql
   - if [[ "$DB" == "mysql" ]]; then mysql -e "DROP DATABASE IF EXISTS typo3_test;" -uroot; fi
   - if [[ "$DB" == "mysql" ]]; then mysql -e "create database IF NOT EXISTS typo3_test;" -uroot; fi
   - if [[ "$DB" == "mysql" ]]; then mysql -uroot typo3_test < dbimport/introduction.sql; fi
