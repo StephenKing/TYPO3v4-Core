@@ -35,6 +35,19 @@
 class t3lib_file_Driver_DriverRegistry implements t3lib_Singleton {
 
 	/**
+	 * @var boolean Enable backup of global and system variables
+	 */
+	protected $backupGlobals = TRUE;
+
+	/**
+	 * Exclude TYPO3_DB from backup/ restore of $GLOBALS
+	 * because resource types cannot be handled during serializing
+	 *
+	 * @var array
+	 */
+	protected $backupGlobalsBlacklist = array('TYPO3_DB');
+
+	/**
 	 * @var array
 	 */
 	protected $drivers = array();
