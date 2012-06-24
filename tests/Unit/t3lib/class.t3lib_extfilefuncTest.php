@@ -33,6 +33,19 @@
 class t3lib_extFileFunctionsTest extends tx_phpunit_testcase {
 
 	/**
+	 * @var boolean Enable backup of global and system variables
+	 */
+	protected $backupGlobals = TRUE;
+
+	/**
+	 * Exclude TYPO3_DB from backup/ restore of $GLOBALS
+	 * because resource types cannot be handled during serializing
+	 *
+	 * @var array
+	 */
+	protected $backupGlobalsBlacklist = array('TYPO3_DB');
+
+	/**
 	 * @var fileProcessor
 	 */
 	protected $fileProcessor;
@@ -82,6 +95,8 @@ class t3lib_extFileFunctionsTest extends tx_phpunit_testcase {
 	 */
 	public function setUp() {
 
+		t3lib_div::purgeInstances();
+
 		$this->storageRepository = t3lib_div::makeInstance('t3lib_file_Repository_StorageRepository');
 
 		// Initializing file processor
@@ -109,6 +124,7 @@ class t3lib_extFileFunctionsTest extends tx_phpunit_testcase {
 			}
 		}
 		$this->objectsToTearDown = array();
+		t3lib_div::purgeInstances();
 	}
 
 	/**
