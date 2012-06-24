@@ -233,7 +233,7 @@ class t3lib_file_Factory implements t3lib_Singleton {
 		if (!$storageConfiguration) {
 			$storageConfiguration = $this->convertFlexFormDataToConfigurationArray($storageRecord['configuration']);
 		}
-print_r($storageConfiguration);
+
 		$driverType = $storageRecord['driver'];
 		$driverObject = $this->getDriverObject($driverType, $storageConfiguration);
 
