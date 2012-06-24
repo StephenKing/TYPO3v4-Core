@@ -61,6 +61,7 @@ abstract class t3lib_file_Repository_AbstractRepository implements Tx_Extbase_Pe
 	 */
 	public function __construct() {
 		$this->factory = t3lib_div::makeInstance('t3lib_file_Factory');
+		var_dump(get_class($this->factory));
 	}
 
 	/**

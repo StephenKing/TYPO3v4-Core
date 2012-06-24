@@ -54,7 +54,7 @@ class t3lib_file_Driver_DriverRegistry implements t3lib_Singleton {
 		);
 
 		$driverConfigurations = $GLOBALS['TYPO3_CONF_VARS']['SYS']['fal']['registeredDrivers'];
-
+var_dump($driverConfigurations);
 		foreach ($driverConfigurations as $shortName => $driverConfig) {
 			$shortName = ($shortName ? : $driverConfig['shortName']);
 			$this->registerDriverClass(
