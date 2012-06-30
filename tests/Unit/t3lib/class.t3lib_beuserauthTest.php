@@ -55,11 +55,13 @@ class t3lib_beUserAuthTest extends tx_phpunit_testcase {
 			// reset hooks
 		$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'] = array();
 		$this->fixture = new t3lib_beUserAuth();
+		$this->fixture->user['uid'] = 1;
+		$GLOBALS['BE_USER'] = $this->fixture;
 	}
 
 	public function tearDown() {
 		unset($this->fixture);
-
+		unset($GLOBALS['BE_USER']);
 		t3lib_formProtection_Factory::purgeInstances();
 	}
 
@@ -73,7 +75,7 @@ class t3lib_beUserAuthTest extends tx_phpunit_testcase {
 	 */
 	public function logoffCleansFormProtection() {
 		$formProtection = $this->getMock(
-			't3lib_formprotection_BackendFormProtection', array('clean')
+			't3lib_formprotection_BackendFormProtection', array('clean'), array(), '', FALSE
 		);
 		$formProtection->expects($this->atLeastOnce())->method('clean');
 		t3lib_formProtection_Factory::set(

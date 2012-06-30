@@ -372,7 +372,7 @@ class Typo3_Bootstrap_BaseSetup {
 	 * @return string Absolute path to entry script
 	 */
 	protected static function getPathThisScript() {
-		if (defined('TYPO3_cliMode') && TYPO3_cliMode === TRUE) {
+		if (isset($_SERVER['TYPO3_SCRIPT']) || (defined('TYPO3_cliMode') && TYPO3_cliMode === TRUE)) {
 			return self::getPathThisScriptCli();
 		} else {
 			return self::getPathThisScriptNonCli();
@@ -420,7 +420,9 @@ class Typo3_Bootstrap_BaseSetup {
 	 */
 	protected static function getPathThisScriptCli() {
 			// Possible relative path of the called script
-		if (isset($_SERVER['argv'][0])) {
+		if (isset($_SERVER['TYPO3_SCRIPT'])) {
+			$scriptPath = $_SERVER['TYPO3_SCRIPT'];
+		} elseif (isset($_SERVER['argv'][0])) {
 			$scriptPath = $_SERVER['argv'][0];
 		} elseif (isset($_ENV['_'])) {
 			$scriptPath = $_ENV['_'];
@@ -483,6 +485,8 @@ class Typo3_Bootstrap_BaseSetup {
 			// If end of path is not "typo3/" and TYPO3_MOD_PATH is given
 		if (defined('TYPO3_MOD_PATH')) {
 			return self::getPathSiteByTypo3ModulePath();
+		} elseif (isset($_SERVER['TYPO3_ROOTPATH'])) {
+			return $_SERVER['TYPO3_ROOTPATH'];
 		} else {
 			return self::getPathSiteByRelativePathPart($relativePathPart);
 		}
