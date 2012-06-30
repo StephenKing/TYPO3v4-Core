@@ -22,7 +22,7 @@ before_script:
   - if [[ "$DB" == "mysql" ]]; then mysql -uroot typo3_test < build-environment/dbimport/cli_users.sql; fi
   - build-environment/install-php-extension.sh igbinary > /dev/null
   - build-environment/install-php-extension.sh memcached > /dev/null
-  - printf "no\n" | build-environment/install-php-extension.sh apc > /dev/null
-  - echo "apc.slam_defense = Off" >> `php --ini | grep "Loaded Configuration" | sed -e "s|.*:\s*||"`
+#  - printf "no\n" | build-environment/install-php-extension.sh apc > /dev/null
+#  - echo "apc.slam_defense = Off" >> `php --ini | grep "Loaded Configuration" | sed -e "s|.*:\s*||"`
 
 script: php $PWD/typo3/cli_dispatch.phpsh phpunit $PWD/tests/
