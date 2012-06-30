@@ -21,6 +21,6 @@ before_script:
   - if [[ "$DB" == "mysql" ]]; then mysql -e "create database IF NOT EXISTS typo3_test;" -uroot; fi
   - if [[ "$DB" == "mysql" ]]; then mysql -uroot typo3_test < build-environment/Introduction/typo3conf/ext/introduction/Resources/Private/Subpackages/Introduction/Database/introduction.sql; fi
   - if [[ "$DB" == "mysql" ]]; then mysql -uroot typo3_test < build-environment/dbimport/cli_users.sql; fi
-  - pyrus install pecl/igbinary
+  - pyrus install pecl/igbinary && pyrus build igbinary
 
 script: php $PWD/typo3/cli_dispatch.phpsh phpunit $PWD/tests/
