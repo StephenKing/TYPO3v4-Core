@@ -22,7 +22,7 @@ before_script:
 #  - /bin/bash build-environment/install-php-extensions.sh > /dev/null 2>&1
   - pecl install igbinary > /dev/null
   - printf "no\n" | pecl install apc > /dev/null
-  - php -i | grep -i igbinary
-  - php -i | grep -i apc
+  - echo "extension=\"apc.so\"" >> `php --ini | grep "Loaded Configuration" | sed -e "s|.*:\s*||"`
+  - echo "extension=\"igbinary.so\"" >> `php --ini | grep "Loaded Configuration" | sed -e "s|.*:\s*||"`
 
 script: php $PWD/typo3/cli_dispatch.phpsh phpunit $PWD/tests/
