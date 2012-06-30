@@ -20,7 +20,9 @@ before_script:
   - if [[ "$DB" == "mysql" ]]; then mysql -uroot typo3_test < build-environment/Introduction/typo3conf/ext/introduction/Resources/Private/Subpackages/Introduction/Database/introduction.sql; fi
   - if [[ "$DB" == "mysql" ]]; then mysql -uroot typo3_test < build-environment/dbimport/cli_users.sql; fi
 #  - /bin/bash build-environment/install-php-extensions.sh > /dev/null 2>&1
-  - pecl install igbinary
-  - printf "no\n" | pecl install apc
+  - pecl install igbinary > /dev/null
+  - printf "no\n" | pecl install apc > /dev/null
+  - php -i | grep -i igbinary
+  - php -i | grep -i apc
 
 script: php $PWD/typo3/cli_dispatch.phpsh phpunit $PWD/tests/
