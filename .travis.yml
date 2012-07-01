@@ -1,6 +1,6 @@
 language: php
 php:
-#  - 5.3
+  - 5.3
   - 5.4
 
 env:
@@ -25,9 +25,7 @@ before_script:
 
   - build-environment/install-php-extension.sh igbinary > /dev/null
   - printf "no\n" | build-environment/install-php-extension.sh memcache  > /dev/null
-#  - printf "no\n" | build-environment/install-php-extension.sh apc > /dev/null
-#  - echo "apc.enable_cli = 1" >> $phpConfigFile
-#  - echo "apc.slam_defense = 0" >> $phpConfigFile
+  - if [[ "$TRAVIS_PHP_VERSION" == "5.3" ]]; then (printf "no\n" | build-environment/install-php-extension.sh apc && echo "apc.enable_cli = 1" >> $phpConfigFile && echo "apc.slam_defense = 0" >> $phpConfigFile) > /dev/null; fi
   - (mkdir phpredis-build && cd phpredis-build && git clone --depth 1 git://github.com/nicolasff/phpredis.git && cd phpredis && phpize && ./configure && make && sudo make install && cd ../../) > /dev/null
   - echo "extension=\"redis.so\"" >> $phpConfigFile
 
