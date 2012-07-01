@@ -19,7 +19,7 @@ before_script:
   - installPhpModule redis
   - if [[ "$TRAVIS_PHP_VERSION" == "5.3" ]]; then installPhpModule -y apc; fi
 
-# Install rudimentary TYPO3
+# Install rudimentary TYPO3 (can be improved)
   - git clone git://git.typo3.org/TYPO3v4/Distributions/Introduction.git build-environment/Introduction
   - mv build-environment/typo3conf .
   - git clone git://git.typo3.org/TYPO3v4/Extensions/phpunit.git typo3conf/ext/phpunit/
