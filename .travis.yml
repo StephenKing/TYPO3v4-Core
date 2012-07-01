@@ -31,4 +31,5 @@ before_script:
   - (mkdir phpredis-build && cd phpredis-build && git clone --depth 1 git://github.com/nicolasff/phpredis.git && cd phpredis && phpize && ./configure && make && sudo make install && cd ../../) > /dev/null
   - [ -z "`grep redis.so $phpConfigFile`" ] && echo "extension=\"redis.so\"" >> $phpConfigFile
 
+
 script: php $PWD/typo3/cli_dispatch.phpsh phpunit $PWD/tests/
