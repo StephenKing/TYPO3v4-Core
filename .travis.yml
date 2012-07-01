@@ -24,9 +24,9 @@ before_script:
   - if [[ "$DB" == "mysql" ]]; then mysql -uroot typo3_test < build-environment/dbimport/cli_users.sql; fi
   - /bin/bash build-environment/install-php-extensions.sh > /dev/null 2>&1
 
-  - build-environment/install-php-extension.sh igbinary > /dev/null
-  - printf "no\n" | build-environment/install-php-extension.sh memcache  > /dev/null
-  - printf "no\n" | build-environment/install-php-extension.sh apc > /dev/null
+  - pecl install igbinary > /dev/null
+  - printf "no\n" | pecl install memcache  > /dev/null
+  - printf "no\n" | pecl install apc > /dev/null
   - echo "apc.enable_cli = 1" >> $phpConfigFile
   - echo "apc.slam_defense = 0" >> $phpConfigFile
   - (mkdir phpredis-build && cd phpredis-build && git clone --depth 1 git://github.com/nicolasff/phpredis.git && cd phpredis && phpize && ./configure && make && sudo make install && cd ../../) > /dev/null
