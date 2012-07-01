@@ -22,14 +22,13 @@ before_script:
   - if [[ "$DB" == "mysql" ]]; then mysql -e "create database IF NOT EXISTS typo3_test;" -uroot; fi
   - if [[ "$DB" == "mysql" ]]; then mysql -uroot typo3_test < build-environment/Introduction/typo3conf/ext/introduction/Resources/Private/Subpackages/Introduction/Database/introduction.sql; fi
   - if [[ "$DB" == "mysql" ]]; then mysql -uroot typo3_test < build-environment/dbimport/cli_users.sql; fi
-  - /bin/bash build-environment/install-php-extensions.sh > /dev/null 2>&1
 
-#  - pecl install igbinary
-#  - printf "no\n" | pecl install memcache
-  - printf "no\n" | pecl install apc
+  - build-environment/install-php-extension.sh igbinary > /dev/null
+  - printf "no\n" | build-environment/install-php-extension.sh memcache  > /dev/null
+  - printf "no\n" | build-environment/install-php-extension.sh apc > /dev/null
   - echo "apc.enable_cli = 1" >> $phpConfigFile
   - echo "apc.slam_defense = 0" >> $phpConfigFile
   - (mkdir phpredis-build && cd phpredis-build && git clone --depth 1 git://github.com/nicolasff/phpredis.git && cd phpredis && phpize && ./configure && make && sudo make install && cd ../../) > /dev/null
   - echo "extension=\"redis.so\"" >> $phpConfigFile
 
-script: php $PWD/typo3/cli_dispatch.phpsh phpunit -v $PWD/tests/
+script: php $PWD/typo3/cli_dispatch.phpsh phpunit $PWD/tests/
