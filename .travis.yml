@@ -17,7 +17,6 @@ before_script:
   - installPhpModule igbinary
   - installPhpModule -y memcache
   - installPhpModule redis
-  - installPhpModule hash
   - if [[ "$TRAVIS_PHP_VERSION" == "5.3" ]]; then installPhpModule -y apc; fi
 
 # Install rudimentary TYPO3
